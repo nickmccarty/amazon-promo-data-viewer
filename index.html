@@ -13,8 +13,8 @@
   <h1 class="text-center mb-4">Amazon Promo Data Viewer</h1>
 
   <div class="d-flex justify-content-between mb-3">
-    <input type="text" class="form-control w-50" id="search" placeholder="🔍 Search...">
-    <label>
+<!--     <input type="text" class="form-control w-50" id="search" placeholder="🔍 Search...">
+    <label> -->
       <input type="checkbox" onclick="toggleDarkMode()"> 🌙 Dark Mode
     </label>
   </div>
@@ -53,12 +53,15 @@
         layout: "fitColumns",
         pagination: "local",
         paginationSize: 5,
-        columns: headers.map(header => ({
-          title: header,
-          field: header,
-          sorter: "string",
-          headerFilter: "input"
-        }))
+        columns: [
+            { title: "Name", field: headers[0], sorter: "string", headerFilter: "input" },  // Name
+            { title: "Price", field: headers[1], sorter: "number", headerFilter: "input" }, // Price
+            { title: "Size", field: headers[2], sorter: "string", headerFilter: "input" },  // Size
+            { title: "Count", field: headers[3], sorter: "number", headerFilter: "input" }, // Count
+            { title: "ASIN", field: headers[4], sorter: "string", headerFilter: "input" },  // ASIN
+            { title: "Promo", field: headers[5], sorter: "string", headerFilter: "input" }, // Promo
+            { title: "Date", field: headers[6], sorter: "date", headerFilter: "input" }     // Date
+        ]
       });
 
       searchInput.addEventListener("keyup", () => {
