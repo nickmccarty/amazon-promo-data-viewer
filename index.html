@@ -1,100 +1,117 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Amazon Promo Data Viewer</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Amazon Promo Data Viewer</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://unpkg.com/tabulator-tables@6.3.1/dist/css/tabulator.min.css" rel="stylesheet">
 </head>
 <body class="bg-light">
-
 <div class="container py-5">
-  <h1 class="text-center mb-4">Amazon Promo Data Viewer</h1>
+    <h1 class="text-center mb-4">Amazon Promo Data Viewer</h1>
 
-  <div class="d-flex justify-content-between mb-3">
-<!--     <input type="text" class="form-control w-50" id="search" placeholder="🔍 Search..."> -->
-    <label>
-      <input type="checkbox" onclick="toggleDarkMode()"> 🌙 Dark Mode
-    </label>
-  </div>
+    <div class="d-flex justify-content-between mb-3">
+        <label>
+            <input type="checkbox" onclick="toggleDarkMode()"> 🌙 Dark Mode
+        </label>
+        <button id="download-btn" class="btn btn-primary">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-download" viewBox="0 0 16 16">
+                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5"/>
+                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708z"/>
+            </svg>
+            Download Excel
+        </button>
+    </div>
 
-  <div id="loading" class="text-center my-4">
-    <div class="spinner-border text-primary" role="status"></div>
-    <p>Loading...</p>
-  </div>
+    <div id="loading" class="text-center my-4">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p>Loading...</p>
+    </div>
 
-  <div id="table" class="table-responsive"></div>
+    <div id="table" class="table-responsive"></div>
 </div>
 
 <script src="https://unpkg.com/tabulator-tables@6.3.1/dist/js/tabulator.min.js"></script>
+<script lang="javascript" src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <script>
-  const sheetURL = "https://docs.google.com/spreadsheets/d/1ROUd1OEyQ_AQKN7x9e88U6Q9rQDzs2xpO6IYeqauEqQ/gviz/tq?tqx=out:csv&sheet=All%20Promos";
-  const loading = document.getElementById("loading");
-  const searchInput = document.getElementById("search");
-  let table;
+    const sheetURL = "https://docs.google.com/spreadsheets/d/1ROUd1OEyQ_AQKN7x9e88U6Q9rQDzs2xpO6IYeqauEqQ/gviz/tq?tqx=out:csv&sheet=All%20Promos";
+    const loading = document.getElementById("loading");
+    let table;
 
-  document.addEventListener("DOMContentLoaded", async () => {
-    try {
-      const response = await fetch(sheetURL);
-      const csv = await response.text();
-      const rows = parseCSV(csv);
-      const headers = rows[0];
-      const data = rows.slice(1).map(row => {
-        const obj = {};
-        headers.forEach((header, index) => {
-          obj[header] = row[index] || "";
-        });
-        return obj;
-      });
+    document.addEventListener("DOMContentLoaded", async () => {
+        try {
+            const response = await fetch(sheetURL);
+            const csv = await response.text();
+            const rows = parseCSV(csv);
+            const headers = rows[0];
+            const data = rows.slice(1).map(row => {
+                const obj = {};
+                headers.forEach((header, index) => {
+                    obj[header] = row[index] || "";
+                });
+                return obj;
+            });
 
-      table = new Tabulator("#table", {
-        data: data,
-        layout: "fitColumns",
-        pagination: "local",
-        paginationSize: 5,
-        columns: [
-            { title: "Name", field: headers[0], sorter: "string", headerFilter: "input" },  // Name
-            { title: "Price", field: headers[1], sorter: "number", headerFilter: "input" }, // Price
-            { title: "Size", field: headers[2], sorter: "string", headerFilter: "input" },  // Size
-            { title: "Count", field: headers[3], sorter: "number", headerFilter: "input" }, // Count
-            { title: "ASIN", field: headers[4], sorter: "string", headerFilter: "input" },  // ASIN
-            { title: "Promo", field: headers[5], sorter: "string", headerFilter: "input" }, // Promo
-            { title: "Date", field: headers[6], sorter: "date", headerFilter: "input" }     // Date
-        ]
-      });
+            table = new Tabulator("#table", {
+                data: data,
+                layout: "fitColumns",
+                pagination: "local",
+                paginationSize: 5,
+                columns: headers.map(header => ({
+                    title: header,
+                    field: header,
+                    headerFilter: "input",
+                    sorter: "string"
+                }))
+            });
 
-      searchInput.addEventListener("keyup", () => {
-        table.setFilter((row) =>
-          Object.values(row.getData()).some(value =>
-            value.toString().toLowerCase().includes(searchInput.value.toLowerCase())
-          )
+        } catch (error) {
+            console.error("Failed to fetch data:", error);
+            document.querySelector("#table").innerHTML = `<p class="text-center text-danger">Failed to load data</p>`;
+        } finally {
+            loading.style.display = "none";
+        }
+    });
+
+    function parseCSV(csv) {
+        const lines = csv.split("\n");
+        return lines.map(line =>
+            line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)?.map(cell =>
+                cell.replace(/^"|"$/g, "").trim()
+            ) || []
         );
-      });
-
-    } catch (error) {
-      console.error("Failed to fetch data:", error);
-      document.querySelector("#table").innerHTML = `<p class="text-center text-danger">Failed to load data</p>`;
-    } finally {
-      loading.style.display = "none";
     }
-  });
 
-  function parseCSV(csv) {
-    const lines = csv.split("\n");
-    return lines.map(line =>
-      line.match(/(".*?"|[^",]+)(?=\s*,|\s*$)/g)?.map(cell =>
-        cell.replace(/^"|"$/g, "").trim()
-      ) || []
-    );
-  }
+    function toggleDarkMode() {
+        document.body.classList.toggle("bg-dark");
+        document.body.classList.toggle("text-white");
+        document.querySelector(".tabulator").classList.toggle("tabulator-dark");
+    }
 
-  function toggleDarkMode() {
-    document.body.classList.toggle("bg-dark");
-    document.body.classList.toggle("text-white");
-    document.querySelector(".tabulator").classList.toggle("tabulator-dark");
-  }
+    document.getElementById("download-btn").addEventListener("click", () => {
+        const filteredData = table.getData("active"); // Get filtered rows only
+        if (filteredData.length === 0) {
+            alert("No filtered data to export!");
+            return;
+        }
+
+        const worksheet = XLSX.utils.json_to_sheet(filteredData);
+        const workbook = XLSX.utils.book_new();
+        XLSX.utils.book_append_sheet(workbook, worksheet, "Filtered Data");
+
+        workbook.Props = {
+            Title: "Filtered Data Export",
+            Subject: "Tabulator Export",
+            CreatedDate: new Date()
+        };
+
+        const today = new Date();
+        const formattedDate = `${(today.getMonth() + 1).toString().padStart(2, "0")}-${today.getDate().toString().padStart(2, "0")}-${today.getFullYear()}`;
+        const filename = `amazon-promo-data-pull-${formattedDate}.xlsx`;
+        XLSX.writeFile(workbook, filename);
+    });
+
 </script>
-
 </body>
 </html>
