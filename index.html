@@ -60,9 +60,9 @@
                         columns: [
                             { title: "Date", field: headers[0], sorter: "date", headerFilter: "input" },  // Date
                             { title: "Product", field: headers[1], sorter: "string", headerFilter: "input" },  // Product
-                            { title: "Brand", field: headers[2], sorter: "string", headerFilter: "input" },  // Brand
+                            { title: "Brand", field: headers[2], formatter: "plaintext", sorter: "string", headerFilter: "input" },  // Brand
                             { title: "Price", field: headers[3], sorter: "string", headerFilter: "input" }, // Price
-                            { title: "Size", field: headers[4], sorter: "string", headerFilter: "input" },  // Size
+                            { title: "Size", field: headers[4], formatter: "plaintext", sorter: "string", headerFilter: "input" },  // Size
                             { title: "Count", field: headers[5], sorter: "string", headerFilter: "input" }, // Count
                             { title: "Promo", field: headers[6], sorter: "string", headerFilter: "input" }, // Promo
                             { title: "ASIN", field: headers[7], sorter: "string", headerFilter: "input" },  // ASIN
